@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hawser — competitive intelligence for the working waterfront</title>
+<meta name="description" content="AIS-derived competitor activity, port demand trends, and contract signals for towing and marine services operators.">
+<style>
+  :root{
+    --ink:#0B1220; --panel:#101B2E; --line:rgba(122,183,255,.14);
+    --text:#DCE6F2; --muted:#8CA0B8; --amber:#F5A623; --green:#38E1B0; --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,sans-serif;line-height:1.6}
+  .wrap{max-width:1020px;margin:0 auto;padding:0 24px}
+  a{color:var(--green);text-decoration:none}
+  .mono{font-family:var(--mono)}
+
+  header{padding:26px 0;border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:12px}
+  .knot{width:30px;height:30px;border:3px solid var(--amber);border-radius:50%;position:relative}
+  .knot::after{content:"";position:absolute;inset:6px;border:3px solid var(--amber);border-radius:50%;opacity:.45}
+  .brand b{font-size:20px;letter-spacing:.14em}
+
+  .hero{padding:84px 0 40px}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--amber);text-transform:uppercase}
+  h1{font-size:clamp(34px,5.4vw,58px);line-height:1.06;margin:18px 0 0;font-weight:700;letter-spacing:-.015em;max-width:17ch}
+  .sub{color:var(--muted);font-size:19px;max-width:58ch;margin:24px 0 0}
+  .sub b{color:var(--text)}
+  .cta{display:inline-block;margin-top:34px;background:var(--amber);color:#0B1220;font-weight:700;padding:14px 28px;font-size:16px}
+  .cta:hover{filter:brightness(1.08)}
+  .cta-note{display:block;margin-top:12px;font-size:13px;color:var(--muted)}
+
+  .radar{margin:64px 0 0;border:1px solid var(--line);background:var(--panel);position:relative}
+  .radar-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--muted)}
+  .live-pill{color:var(--amber)}
+  canvas{display:block;width:100%;height:420px}
+
+  section{padding:72px 0;border-bottom:1px solid var(--line)}
+  h2{font-size:26px;margin:0 0 8px}
+  .lede{color:var(--muted);max-width:60ch}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:26px;margin-top:38px}
+  .card{border:1px solid var(--line);background:var(--panel);padding:26px}
+  .card .tag{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--green)}
+  .card h3{margin:12px 0 8px;font-size:19px}
+  .card p{margin:0;color:var(--muted);font-size:15px}
+
+  .who{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:30px}
+  .who div{border-left:3px solid var(--amber);padding:6px 0 6px 16px;color:var(--muted);font-size:15px}
+  .who b{color:var(--text)}
+
+  footer{padding:56px 0 80px;color:var(--muted);font-size:14px}
+  footer .mono{font-size:12px;letter-spacing:.1em}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap brand"><span class="knot"></span><b>HAWSER</b></div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="hero">
+      <div class="eyebrow">Competitive intelligence · Working waterfront</div>
+      <h1>Know what every tug in the harbor did last week.</h1>
+      <p class="sub">Hawser turns public vessel traffic into a <b>morning brief for marine services operators</b>: which competitors worked, which ships moved, where demand is heading, and which contracts just opened. No terminals, no analysts — a five-minute read with the coffee.</p>
+      <a class="cta" href="mailto:marcosoe@me.com?subject=Hawser%20pilot%20access&body=Port%2Fregion%3A%0AOperation%20type%3A%0AFleet%20size%3A">Request pilot access</a>
+      <span class="cta-note">Pilot cohort: 10 operators · free during the pilot · shaped around your port</span>
+    </div>
+
+    <div class="radar">
+      <div class="radar-head">
+        <span>HARBOR VIEW — PORT EVERGLADES</span>
+        <span class="live-pill" id="feedLabel">SAMPLE DATA · LIVE FEED IN PILOT</span>
+      </div>
+      <canvas id="radar"></canvas>
+    </div>
+
+    <section>
+      <h2>Three signals, one brief</h2>
+      <p class="lede">Everything derives from public AIS movement and public procurement records — assembled the way an operations desk actually thinks.</p>
+      <div class="grid">
+        <div class="card">
+          <div class="tag">COMPETITOR TRACKER</div>
+          <h3>Who worked, and how much</h3>
+          <p>Escort and assist activity by operator, day by day. Spot the week your competitor added a second shift — not the quarter after.</p>
+        </div>
+        <div class="card">
+          <div class="tag">PORT DEMAND</div>
+          <h3>Where the ships are going</h3>
+          <p>Arrivals by vessel class, berth pressure, and week-over-week trend lines for the ports you compete in.</p>
+        </div>
+        <div class="card">
+          <div class="tag">CONTRACT RADAR</div>
+          <h3>Bids before the grapevine</h3>
+          <p>Federal and port-authority solicitations for towing, dredge support, and marine services — surfaced the morning they post.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Built for the people who run the boats</h2>
+      <div class="who">
+        <div><b>Towing &amp; ship-assist operators</b><br>Track your harbor's share of assists</div>
+        <div><b>Marine services &amp; dredge</b><br>See mobilizations before the rumor mill</div>
+        <div><b>Brokers &amp; agents</b><br>Arrival pressure by class and berth</div>
+        <div><b>Port &amp; terminal teams</b><br>One page of movement truth per morning</div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>Built by an operator-side maritime insider. Independent — public data only.</div>
+    <div class="mono" style="margin-top:10px">HAWSER.IO · PILOT 2026</div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  const cv = document.getElementById('radar');
+  const ctx = cv.getContext('2d');
+  let W,H,DPR;
+  function size(){
+    DPR = window.devicePixelRatio||1;
+    W = cv.clientWidth; H = 420;
+    cv.width = W*DPR; cv.height = H*DPR;
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  size(); addEventListener('resize', size);
+
+  // Stylized harbor: channel + turning basin + berths, with workboat tracks.
+  // Sample data (clearly labeled) until the live pilot feed is connected.
+  const boats = [];
+  const OPS = [
+    {name:'OPERATOR A', color:'#F5A623'},
+    {name:'OPERATOR B', color:'#38E1B0'},
+    {name:'OPERATOR C', color:'#7AB7FF'},
+  ];
+  for (let i=0;i<7;i++){
+    const op = OPS[i%OPS.length];
+    boats.push({
+      op, phase: Math.random()*Math.PI*2, speed: .0022 + Math.random()*.0016,
+      radius: 60 + Math.random()*130, cx: .28 + Math.random()*.44, cy: .30 + Math.random()*.40,
+      trail: []
+    });
+  }
+
+  function draw(t){
+    ctx.clearRect(0,0,W,H);
+
+    // water grid
+    ctx.strokeStyle = 'rgba(122,183,255,.07)';
+    ctx.lineWidth = 1;
+    for(let x=0;x<W;x+=46){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=0;y<H;y+=46){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+    // channel
+    ctx.strokeStyle = 'rgba(245,166,35,.25)';
+    ctx.setLineDash([10,8]); ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0,H*.55); ctx.lineTo(W*.62,H*.55); ctx.arc(W*.62,H*.42,H*.13,Math.PI/2,-Math.PI/2,true); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // berth blocks
+    ctx.fillStyle = 'rgba(122,183,255,.10)';
+    [ [W*.70,H*.12], [W*.78,H*.30], [W*.70,H*.62], [W*.80,H*.78] ].forEach(([x,y])=>ctx.fillRect(x,y,W*.16,26));
+
+    boats.forEach(b=>{
+      b.phase += b.speed;
+      const x = b.cx*W + Math.cos(b.phase)*b.radius;
+      const y = b.cy*H + Math.sin(b.phase*1.3)*b.radius*.35;
+      b.trail.push([x,y]);
+      if (b.trail.length>90) b.trail.shift();
+
+      ctx.strokeStyle = b.op.color+'55';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      b.trail.forEach(([tx,ty],i)=> i?ctx.lineTo(tx,ty):ctx.moveTo(tx,ty));
+      ctx.stroke();
+
+      ctx.fillStyle = b.op.color;
+      ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fill();
+    });
+
+    // legend
+    ctx.font = '11px SF Mono, Menlo, monospace';
+    OPS.forEach((op,i)=>{
+      ctx.fillStyle = op.color;
+      ctx.fillRect(16, 16+i*20, 10, 10);
+      ctx.fillStyle = 'rgba(220,230,242,.75)';
+      ctx.fillText(op.name, 32, 25+i*20);
+    });
+
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>
