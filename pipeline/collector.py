@@ -28,7 +28,7 @@ except ImportError:
     sys.exit("pip install websockets")
 
 STREAM_URL = "wss://stream.aisstream.io/v0/stream"
-DB_PATH = os.path.join(os.path.dirname(__file__), "hawser.db")
+DB_PATH = os.environ.get("HAWSER_DB") or os.path.join(os.path.dirname(__file__), "hawser.db")
 
 # Harbor definitions: name -> bounding box [[lat_min, lon_min], [lat_max, lon_max]]
 # Coordinates are public chart knowledge.

@@ -1,0 +1,9 @@
+{
+  "_readme": [
+    "Maps AIS identities to operators for the brief. Public data only.",
+    "mmsi: exact match, wins over patterns.  name_patterns: case-insensitive regex on the AIS ship name.",
+    "Run `brief.py --unassigned` to list workboats seen that have no operator yet."
+  ],
+  "mmsi": {},
+  "name_patterns": {}
+}

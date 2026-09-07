@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+pipeline/hawser.db
+pipeline/hawser.db-journal
+.env
+.DS_Store
