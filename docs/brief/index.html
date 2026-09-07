@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hawser brief — Port Everglades</title>
+<style>
+  :root{--ink:#0B1220;--panel:#101B2E;--line:rgba(122,183,255,.14);--text:#DCE6F2;--muted:#8CA0B8;--amber:#F5A623;--green:#38E1B0;--mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,sans-serif;line-height:1.6}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px 80px}
+  a{color:var(--green);text-decoration:none}
+  header{padding:26px 0;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+  .brand{display:flex;align-items:center;gap:12px}
+  .knot{width:26px;height:26px;border:3px solid var(--amber);border-radius:50%;position:relative}
+  .knot::after{content:"";position:absolute;inset:5px;border:3px solid var(--amber);border-radius:50%;opacity:.45}
+  .brand b{font-size:17px;letter-spacing:.14em}
+  .meta{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+  .banner{margin:22px 0 0;border:1px solid var(--amber);color:var(--amber);font-family:var(--mono);font-size:12px;letter-spacing:.14em;padding:10px 14px;text-transform:uppercase}
+  h1{font-size:30px;margin:38px 0 4px;letter-spacing:-.01em}
+  .sub{color:var(--muted);margin:0 0 8px}
+  h2{font-size:15px;font-family:var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--amber);margin:44px 0 14px}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);font-size:14px}
+  th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line)}
+  th{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  tr:last-child td{border-bottom:none}
+  .bar{display:inline-block;height:8px;background:var(--amber);vertical-align:middle;margin-right:8px}
+  .unassigned td{color:var(--muted)}
+  ul{color:var(--muted);font-size:14px;padding-left:20px}
+  .note{color:var(--muted);font-size:13px;margin-top:44px;border-top:1px solid var(--line);padding-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="/"><span class="knot"></span><b>HAWSER</b></a>
+    <span class="meta">SAMPLE &middot; 2026-09-07T18:37Z</span>
+  </header>
+  <div class="banner">Sample brief &mdash; synthetic data, real format. Pilot briefs run on your port&rsquo;s live feed.</div>
+  <h1>Port Everglades brief</h1>
+  <p class="sub">Last 7 days &middot; who worked, how much, and what came through the port.</p>
+  <h2>Who worked</h2><table><tr><th>Operator</th><th class="num">Boats</th><th class="num">Movements</th><th class="num">Active hrs</th><th class="num">Share</th></tr><tr><td>Sea Hawk Towing</td><td class="num">2</td><td class="num">5</td><td class="num"><span class="bar" style="width:70px"></span>3.5</td><td class="num">48%</td></tr><tr><td>Bravo Marine</td><td class="num">1</td><td class="num">2</td><td class="num"><span class="bar" style="width:58px"></span>2.9</td><td class="num">40%</td></tr><tr><td>Port Pilots</td><td class="num">1</td><td class="num">2</td><td class="num"><span class="bar" style="width:18px"></span>0.9</td><td class="num">12%</td></tr></table>
+<h2>By boat</h2><table><tr><th>Boat</th><th>Operator</th><th class="num">Movements</th><th class="num">Active hrs</th><th class="num">Days</th><th>Last seen</th></tr><tr><td>BRAVO TUG</td><td>Bravo Marine</td><td class="num">2</td><td class="num">2.9</td><td class="num">2</td><td>2026-09-07 18:36</td></tr><tr><td>SEA HAWK ONE</td><td>Sea Hawk Towing</td><td class="num">3</td><td class="num">2.1</td><td class="num">2</td><td>2026-09-07 18:36</td></tr><tr><td>SEA HAWK TWO</td><td>Sea Hawk Towing</td><td class="num">2</td><td class="num">1.4</td><td class="num">2</td><td>2026-09-07 18:36</td></tr><tr><td>PILOT ONE</td><td>Port Pilots</td><td class="num">2</td><td class="num">0.9</td><td class="num">2</td><td>2026-09-07 18:36</td></tr></table>
+<h2>Where the ships are going</h2><table><tr><th>Day</th><th class="num">Cargo</th><th class="num">Passenger</th><th class="num">Tanker</th></tr><tr><td>2026-09-04</td><td class="num">0</td><td class="num">0</td><td class="num">1</td></tr><tr><td>2026-09-05</td><td class="num">0</td><td class="num">1</td><td class="num">0</td></tr><tr><td>2026-09-06</td><td class="num">2</td><td class="num">0</td><td class="num">0</td></tr></table><ul><li>OIL SLICK (Tanker) &rarr; PEV &middot; first seen 2026-09-04 22:00</li><li>CROWN QUEEN (Passenger) &rarr; FLL &middot; first seen 2026-09-05 07:00</li><li>MSC BIGBOX (Cargo) &rarr; PORT EVERGLADES &middot; first seen 2026-09-06 04:00</li><li>EVER STEADY (Cargo) &rarr; PEV ANCH &middot; first seen 2026-09-06 13:00</li></ul>
+  <p class="note">Derived from public AIS movement only. Movements approximate jobs (assists, escorts, shifts) &mdash; a share-of-harbor signal, not a billing record. &middot; <a href="/">hawser.io</a></p>
+</div>
+</body>
+</html>

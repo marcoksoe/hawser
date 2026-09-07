@@ -1,0 +1,77 @@
+name: collect-and-brief
+
+on:
+  schedule:
+    # 4x daily, working-hours weighted (UTC): ~07/12/17/22 ET offsets
+    - cron: "12 11,16,21 * * *"
+    - cron: "12 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      HAWSER_DB: ${{ github.workspace }}/data/hawser.db
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Restore AIS database
+        uses: actions/cache/restore@v4
+        with:
+          path: data
+          key: hawser-db-${{ github.run_id }}
+          restore-keys: hawser-db-
+
+      - name: Install deps
+        run: pip install -r requirements.txt
+
+      - name: Stream AIS (12 min)
+        if: ${{ secrets.AISSTREAM_KEY != '' }}
+        env:
+          AISSTREAM_KEY: ${{ secrets.AISSTREAM_KEY }}
+        run: |
+          mkdir -p data
+          python pipeline/collector.py --harbor port_everglades --minutes 12
+
+      - name: Skip note (no key)
+        if: ${{ secrets.AISSTREAM_KEY == '' }}
+        run: echo "AISSTREAM_KEY secret not set - nothing collected."
+
+      - name: Save AIS database
+        if: ${{ always() }}
+        uses: actions/cache/save@v4
+        with:
+          path: data
+          key: hawser-db-${{ github.run_id }}
+
+      - name: Rebuild brief + site data
+        run: |
+          if [ -f "$HAWSER_DB" ]; then
+            python pipeline/brief.py --days 7 \
+              --json docs/data/harbor.json \
+              --html docs/brief/index.html \
+              --md brief.md
+            cat brief.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No database yet - leaving sample brief in place."
+          fi
+
+      - name: Commit site data
+        run: |
+          git config user.name "hawser-bot"
+          git config user.email "hawser-bot@users.noreply.github.com"
+          git add docs/data/harbor.json docs/brief/index.html || true
+          git diff --cached --quiet || git commit -m "data: refresh harbor brief"
+          git push
