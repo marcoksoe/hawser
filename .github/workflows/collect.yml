@@ -20,6 +20,7 @@ jobs:
     timeout-minutes: 25
     env:
       HAWSER_DB: ${{ github.workspace }}/data/hawser.db
+      HAS_KEY: ${{ secrets.AISSTREAM_KEY != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -38,7 +39,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Stream AIS (12 min)
-        if: ${{ secrets.AISSTREAM_KEY != '' }}
+        if: ${{ env.HAS_KEY == 'true' }}
         env:
           AISSTREAM_KEY: ${{ secrets.AISSTREAM_KEY }}
         run: |
@@ -46,7 +47,7 @@ jobs:
           python pipeline/collector.py --harbor port_everglades --minutes 12
 
       - name: Skip note (no key)
-        if: ${{ secrets.AISSTREAM_KEY == '' }}
+        if: ${{ env.HAS_KEY != 'true' }}
         run: echo "AISSTREAM_KEY secret not set - nothing collected."
 
       - name: Save AIS database
