@@ -27,6 +27,23 @@ from datetime import datetime, timedelta, timezone
 
 from collector import DB_PATH, HARBORS, WORKBOAT_TYPES, db_init
 
+try:
+    from enrich import owner_for_imo
+except ImportError:  # enrichment is optional
+    owner_for_imo = lambda imo: None
+
+# Tokens that mark a Brazilian previous/next call in the AIS destination field.
+BRAZIL_DEST = re.compile(
+    r"\b(BR[A-Z]{3}|SANTOS|PARANAGUA|RIO GRANDE|RIO DE|ITAJAI|ITAGUAI|"
+    r"SEPETIBA|SUAPE|VITORIA|SALVADOR|PECEM|NAVEGANTES|IMBITUBA|SAO FRAN)",
+    re.I)
+
+
+def is_brazil_trade(dest, harbors_seen):
+    if dest and BRAZIL_DEST.search(dest):
+        return True
+    return bool({"santos", "paranagua", "rio"} & set(harbors_seen))
+
 OPERATORS_PATH = os.path.join(os.path.dirname(__file__), "operators.json")
 
 ACTIVE_KN = 1.0
@@ -95,8 +112,8 @@ def load_window(con, harbor, days):
     rows = con.execute(
         """
         SELECT p.mmsi, COALESCE(NULLIF(v.name,''), NULLIF(p.name,''), 'MMSI ' || p.mmsi),
-               COALESCE(v.ship_type, p.ship_type), v.dest,
-               p.ts_utc, p.lat, p.lon, p.sog
+               COALESCE(v.ship_type, p.ship_type), v.dest, v.imo,
+               p.ts_utc, p.lat, p.lon, p.sog, p.harbor
         FROM positions p LEFT JOIN vessels v USING (mmsi)
         WHERE p.harbor = ? AND p.ts_utc >= ?
         ORDER BY p.mmsi, p.ts_utc
@@ -104,8 +121,10 @@ def load_window(con, harbor, days):
         (harbor, since.strftime("%Y-%m-%d %H:%M:%S")),
     ).fetchall()
     vessels = {}
-    for mmsi, name, stype, dest, ts, lat, lon, sog in rows:
-        v = vessels.setdefault(mmsi, {"mmsi": mmsi, "name": name, "type": stype, "dest": dest, "pts": []})
+    for mmsi, name, stype, dest, imo, ts, lat, lon, sog, hb in rows:
+        v = vessels.setdefault(mmsi, {"mmsi": mmsi, "name": name, "type": stype,
+                                      "dest": dest, "imo": imo, "harbors": set(), "pts": []})
+        v["harbors"].add(hb)
         v["pts"].append((parse_ts(ts), lat, lon, sog))
     return since, vessels
 
@@ -139,8 +158,19 @@ def build(harbor, days):
                 o["by_day"][s.date().isoformat()] += (e - s).total_seconds() / 3600
         elif stype is not None and int(stype) // 10 in SHIP_CLASSES:
             first = min(dt for dt, *_ in v["pts"])
-            deep.append({"mmsi": v["mmsi"], "name": v["name"], "class": SHIP_CLASSES[int(stype) // 10],
-                         "dest": v["dest"] or "", "first_seen": first.strftime("%Y-%m-%d %H:%M")})
+            drec = {"mmsi": v["mmsi"], "name": v["name"], "class": SHIP_CLASSES[int(stype) // 10],
+                    "dest": v["dest"] or "", "imo": v.get("imo") or None,
+                    "brazil_trade": is_brazil_trade(v["dest"], v.get("harbors", set())),
+                    "first_seen": first.strftime("%Y-%m-%d %H:%M")}
+            owner = owner_for_imo(v.get("imo"))
+            if owner:
+                drec["owner"] = owner.get("owner")
+                drec["manager"] = owner.get("manager")
+                if owner.get("company"):
+                    drec["company"] = owner["company"].get("name")
+                    drec["company_loc"] = ", ".join(x for x in
+                        (owner["company"].get("city"), owner["company"].get("state")) if x)
+            deep.append(drec)
 
     total_h = sum(o["active_h"] for o in ops.values()) or 1.0
     op_rows = sorted(
@@ -193,8 +223,15 @@ def render_md(b):
         L += ["| " + day + " | " + " | ".join(str(c.get(k, 0)) for k in classes) + " |"
               for day, c in b["arrivals_by_day"].items()]
         L.append("")
-        L += [f"- {d['name']} ({d['class']}) → {d['dest'] or '?'} · first seen {d['first_seen']}"
-              for d in b["deep_draft"][-15:]]
+        def _md_ship(d):
+            tag = " **[BR trade]**" if d.get("brazil_trade") else ""
+            who = ""
+            if d.get("company"):
+                who = f" · {d['company']}" + (f" ({d['company_loc']})" if d.get("company_loc") else "")
+            elif d.get("owner"):
+                who = f" · {d['owner']}"
+            return f"- {d['name']} ({d['class']}){tag} → {d['dest'] or '?'}{who} · first seen {d['first_seen']}"
+        L += [_md_ship(d) for d in b["deep_draft"][-15:]]
     else:
         L.append("_No deep-draft arrivals in window._")
     L.append("")
@@ -276,6 +313,7 @@ HTML_TMPL = """<!doctype html>
   tr:last-child td{{border-bottom:none}}
   .bar{{display:inline-block;height:8px;background:var(--amber);vertical-align:middle;margin-right:8px}}
   .unassigned td{{color:var(--muted)}}
+  .br{{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--ink);background:var(--green);padding:1px 6px;border-radius:2px;vertical-align:middle}}
   ul{{color:var(--muted);font-size:14px;padding-left:20px}}
   .note{{color:var(--muted);font-size:13px;margin-top:44px;border-top:1px solid var(--line);padding-top:18px}}
 </style>
@@ -334,9 +372,17 @@ def render_html(b, sample=False):
         rows = "".join(
             "<tr><td>" + day + "</td>" + "".join(f'<td class="num">{c.get(k, 0)}</td>' for k in classes) + "</tr>"
             for day, c in b["arrivals_by_day"].items())
-        ships = "".join(
-            f'<li>{_esc(d["name"])} ({d["class"]}) &rarr; {_esc(d["dest"] or "?")} &middot; first seen {d["first_seen"]}</li>'
-            for d in b["deep_draft"][-12:])
+        def _html_ship(d):
+            tag = ' <span class="br">BR trade</span>' if d.get("brazil_trade") else ""
+            who = ""
+            if d.get("company"):
+                loc = f' ({_esc(d["company_loc"])})' if d.get("company_loc") else ""
+                who = f' &middot; <b>{_esc(d["company"])}</b>{loc}'
+            elif d.get("owner"):
+                who = f' &middot; {_esc(d["owner"])}'
+            return (f'<li>{_esc(d["name"])} ({d["class"]}){tag} &rarr; '
+                    f'{_esc(d["dest"] or "?")}{who} &middot; first seen {d["first_seen"]}</li>')
+        ships = "".join(_html_ship(d) for d in b["deep_draft"][-12:])
         parts.append(f'<h2>Where the ships are going</h2><table><tr><th>Day</th>{head}</tr>{rows}</table><ul>{ships}</ul>')
 
     banner = ('<div class="banner">Sample brief &mdash; synthetic data, real format. '

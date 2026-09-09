@@ -1,0 +1,4 @@
+{
+  "_readme": "IMO -> vessel owner/manager, hand-maintained from Equasis (public but login-gated; do not scrape). Add a `cnpj` to auto-resolve Brazilian company identity via enrich.cnpj_lookup.",
+  "9999999": {"owner": "EXAMPLE SHIPPING SA", "manager": "EXAMPLE SHIP MGMT", "cnpj": ""}
+}

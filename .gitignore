@@ -5,3 +5,4 @@ pipeline/hawser.db
 pipeline/hawser.db-journal
 .env
 .DS_Store
+enrich_cache.json

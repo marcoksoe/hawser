@@ -36,6 +36,10 @@ HARBORS = {
     "port_everglades": [[26.05, -80.15], [26.13, -80.09]],
     "miami": [[25.75, -80.20], [25.79, -80.13]],
     "savannah": [[32.00, -81.15], [32.15, -80.98]],
+    # Brazilian load ports — the origin side of the US-bound trade.
+    "santos": [[-24.02, -46.35], [-23.90, -46.28]],
+    "paranagua": [[-25.55, -48.55], [-25.47, -48.48]],
+    "rio": [[-22.95, -43.20], [-22.86, -43.13]],
 }
 
 # AIS ship-type codes for the working waterfront (ITU-R M.1371):
@@ -66,27 +70,33 @@ def db_init():
             ship_type   INTEGER,
             callsign    TEXT,
             dest        TEXT,
+            imo         INTEGER,
             last_seen   TEXT
         );
         """
     )
+    # Migration: add imo to pre-existing databases.
+    cols = {r[1] for r in con.execute("PRAGMA table_info(vessels)")}
+    if "imo" not in cols:
+        con.execute("ALTER TABLE vessels ADD COLUMN imo INTEGER")
     con.commit()
     return con
 
 
-def upsert_vessel(con, mmsi, name, ship_type, callsign, dest, ts):
+def upsert_vessel(con, mmsi, name, ship_type, callsign, dest, ts, imo=None):
     con.execute(
         """
-        INSERT INTO vessels (mmsi, name, ship_type, callsign, dest, last_seen)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO vessels (mmsi, name, ship_type, callsign, dest, imo, last_seen)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(mmsi) DO UPDATE SET
             name      = COALESCE(NULLIF(excluded.name, ''), vessels.name),
             ship_type = COALESCE(excluded.ship_type, vessels.ship_type),
             callsign  = COALESCE(NULLIF(excluded.callsign, ''), vessels.callsign),
             dest      = COALESCE(NULLIF(excluded.dest, ''), vessels.dest),
+            imo       = COALESCE(NULLIF(excluded.imo, 0), vessels.imo),
             last_seen = excluded.last_seen
         """,
-        (mmsi, name, ship_type, callsign, dest, ts),
+        (mmsi, name, ship_type, callsign, dest, imo or 0, ts),
     )
 
 
@@ -138,6 +148,7 @@ async def run(harbor: str, minutes: int, key: str):
                     con, mmsi, name, sd.get("Type"),
                     (sd.get("CallSign") or "").strip(),
                     (sd.get("Destination") or "").strip(), ts,
+                    imo=sd.get("ImoNumber"),
                 )
 
             n += 1
